@@ -17,19 +17,20 @@ var createTask = function(taskText, taskDate, taskList) {
   // append to ul list on the page
   $("#list-" + taskList).append(taskLi);
 };
-
 var loadTasks = function() {
-  tasks = JSON.parse(localStorage.getItem("tasks"));
-
-  // if nothing in localStorage, create a new object to track all task status arrays
-  if (!tasks) {
-    tasks = {
-      toDo: [],
-      inProgress: [],
-      inReview: [],
-      done: []
-    };
-  }
+   tasks = JSON.parse(localStorage.getItem("tasks"));
+   if(!tasks.toDo){
+     console.log('local storage fail!')
+     console.log(tasks)
+ 
+     tasks = {
+       toDo: [],
+       inProgress: [],
+       inReview: [],
+       done: []
+     }
+   }
+ 
 
   // loop over object properties
   $.each(tasks, function(list, arr) {
