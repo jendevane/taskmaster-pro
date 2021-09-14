@@ -17,19 +17,20 @@ var createTask = function(taskText, taskDate, taskList) {
   // append to ul list on the page
   $("#list-" + taskList).append(taskLi);
 };
-
 var loadTasks = function() {
-  tasks = JSON.parse(localStorage.getItem("tasks"));
-
-  // if nothing in localStorage, create a new object to track all task status arrays
-  if (!tasks) {
-    tasks = {
-      toDo: [],
-      inProgress: [],
-      inReview: [],
-      done: []
-    };
-  }
+   tasks = JSON.parse(localStorage.getItem("tasks"));
+   if(!tasks.toDo){
+     console.log('local storage fail!')
+     console.log(tasks)
+ 
+     tasks = {
+       toDo: [],
+       inProgress: [],
+       inReview: [],
+       done: []
+     }
+   }
+ 
 
   // loop over object properties
   $.each(tasks, function(list, arr) {
@@ -174,7 +175,27 @@ $("#remove-tasks").on("click", function() {
   }
   saveTasks();
 });
-
+$(".card .list-group").sortable({
+  connectWith: $(".card .list-group"),
+  scroll: false,
+  tolerance: "pointer",
+  helper: "clone",
+  activate: function(event) {
+    console.log("activate", this);
+  },
+  deactivate: function(event) {
+    console.log("deactivate", this);
+  },
+  over: function(event) {
+    console.log("over", event.target);
+  },
+  out: function(event) {
+    console.log("out", event.target);
+  },
+  update: function(event) {
+    console.log("update", this);
+  }
+});
 // load tasks for the first time
 loadTasks();
 
