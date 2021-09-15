@@ -67,9 +67,7 @@ $('#task-form-modal .btn-primary').click(function () {
 
     // close modal
     $('#task-form-modal').modal('hide')
-    $('#modalDueDate').datepicker({
-      minDate: 1,
-    })
+    
 
     // save in tasks array
     tasks.toDo.push({
@@ -95,7 +93,7 @@ $('.list-group').on('click', 'p', function () {
 })
 
 // editable field was un-focused
-$('.list-group').on('blur', 'textarea', function () {
+$('.list-group').on('change', 'textarea', function () {
   // get current value of textarea
   var text = $(this).val()
 
@@ -130,17 +128,23 @@ $('.list-group').on('click', 'span', function () {
   // enable jquery ui datepicker
   dateInput.datepicker({
     minDate: 1,
-  })
+    onClose: function () {
+      $(this).trigger("change");
+    }
+  });
 
   // automatically bring up the calendar
   dateInput.trigger('focus')
 })
+$('#modalDueDate').datepicker({
+  minDate: 1,
+})
 
 // create new input element
-var dateInput = $('<input>')
+//var dateInput = $('<input>')
   .attr('type', 'text')
-  .addClass('form-control')
-  .val(date)
+ .addClass('form-control')
+ .val(date)
 $(this).replaceWith(dateInput)
 
 // automatically bring up the calendar
@@ -231,4 +235,3 @@ $('#trash').droppable({
     console.log('out')
   },
 })
-
