@@ -16,139 +16,150 @@ var createTask = function (taskText, taskDate, taskList) {
 }
 var loadTasks = function () {
   tasks = JSON.parse(localStorage.getItem('tasks'))
-  if (!tasks.toDo) {
+  //if (!tasks.toDo) {
     console.log('local storage fail!')
     console.log(tasks)
+
+    if (!tasks) {
+      tasks = {
+        toDo: [],
+        inProgress: [],
+        inReview: [],
+        done: []
+      };
+    }
+
+    // loop over object properties
+    $.each(tasks, function (list, arr) {
+      console.log(list, arr)
+      // then loop over sub-array
+      arr.forEach(function (task) {
+        createTask(task.text, task.date, list)
+      })
+    })
+ // }
+}
+
+  var saveTasks = function () {
+    localStorage.setItem('tasks', JSON.stringify(tasks))
   }
 
-  // loop over object properties
-  $.each(tasks, function (list, arr) {
-    console.log(list, arr)
-    // then loop over sub-array
-    arr.forEach(function (task) {
-      createTask(task.text, task.date, list)
-    })
+  // modal was triggered
+  $('#task-form-modal').on('show.bs.modal', function () {
+    // clear values
+    $('#modalTaskDescription, #modalDueDate').val('')
   })
-}
 
-var saveTasks = function () {
-  localStorage.setItem('tasks', JSON.stringify(tasks))
-}
+  // modal is fully visible
+  $('#task-form-modal').on('shown.bs.modal', function () {
+    // highlight textarea
+    $('#modalTaskDescription').trigger('focus')
+  })
 
-// modal was triggered
-$('#task-form-modal').on('show.bs.modal', function () {
-  // clear values
-  $('#modalTaskDescription, #modalDueDate').val('')
-})
+  // save button in modal was clicked
+  $('#task-form-modal .btn-primary').click(function () {
+    // get form values
+    var taskText = $('#modalTaskDescription').val()
+    var taskDate = $('#modalDueDate').val()
 
-// modal is fully visible
-$('#task-form-modal').on('shown.bs.modal', function () {
-  // highlight textarea
-  $('#modalTaskDescription').trigger('focus')
-})
+    if (taskText && taskDate) {
+      createTask(taskText, taskDate, 'toDo')
 
-// save button in modal was clicked
-$('#task-form-modal .btn-primary').click(function () {
-  // get form values
-  var taskText = $('#modalTaskDescription').val()
-  var taskDate = $('#modalDueDate').val()
+      // close modal
+      $('#task-form-modal').modal('hide')
 
-  if (taskText && taskDate) {
-    createTask(taskText, taskDate, 'toDo')
+      // save in tasks array
+      tasks.toDo.push({
+        text: taskText,
+        date: taskDate,
+      })
 
-    // close modal
-    $('#task-form-modal').modal('hide')
+      saveTasks()
+    }
+  })
 
-    // save in tasks array
-    tasks.toDo.push({
-      text: taskText,
-      date: taskDate,
-    })
+  // task text was clicked
+  $('.list-group').on('click', 'p', function () {
+    // get current text of p element
+    var text = $(this).text().trim()
 
+    // replace p element with a new textarea
+    var textInput = $('<textarea>').addClass('form-control').val(text)
+    $(this).replaceWith(textInput)
+
+    // auto focus new element
+    textInput.trigger('focus')
+  })
+
+  // editable field was un-focused
+  $('.list-group').on('blur', 'textarea', function () {
+    // get current value of textarea
+    var text = $(this).val()
+
+    // get status type and position in the list
+    var status = $(this).closest('.list-group').attr('id').replace('list-', '')
+    var index = $(this).closest('.list-group-item').index()
+
+    // update task in array and re-save to localstorage
+    tasks[status][index].text = text
+    console.log(task[status][index])
     saveTasks()
-  }
-})
 
-// task text was clicked
-$('.list-group').on('click', 'p', function () {
-  // get current text of p element
-  var text = $(this).text().trim()
+    // recreate p element
+    var taskP = $('<p>').addClass('m-1').text(text)
 
-  // replace p element with a new textarea
-  var textInput = $('<textarea>').addClass('form-control').val(text)
-  $(this).replaceWith(textInput)
+    // replace textarea with new content
+    $(this).replaceWith(taskP)
+  })
 
-  // auto focus new element
-  textInput.trigger('focus')
-})
+  // due date was clicked
+  $('.list-group').on('click', 'span', function () {
+    // get current text
+    var date = $(this).text().trim()
 
-// editable field was un-focused
-$('.list-group').on('blur', 'textarea', function () {
-  // get current value of textarea
-  var text = $(this).val()
+    // create new input element
+    var dateInput = $('<input>')
+      .attr('type', 'text')
+      .addClass('form-control')
+      .val(date)
+    $(this).replaceWith(dateInput)
 
-  // get status type and position in the list
-  var status = $(this).closest('.list-group').attr('id').replace('list-', '')
-  var index = $(this).closest('.list-group-item').index()
+    // automatically bring up the calendar
+    dateInput.trigger('focus')
+  })
 
-  // update task in array and re-save to localstorage
-  tasks[status][index].text = text
-  console.log(task[status][index])
-  saveTasks()
+  
+  // value of due date was changed
+  $('.list-group').on('blur', "input[type='text']", function () {
+    var date = $(this).val()
 
-  // recreate p element
-  var taskP = $('<p>').addClass('m-1').text(text)
+    // get status type and position in the list
+    var status = $(this).closest('.list-group').attr('id').replace('list-', '')
+    var index = $(this).closest('.list-group-item').index()
 
-  // replace textarea with new content
-  $(this).replaceWith(taskP)
-})
+    // update task in array and re-save to localstorage
+    tasks[status][index].date = date
+    saveTasks()
 
-// due date was clicked
-$('.list-group').on('click', 'span', function () {
-  // get current text
-  var date = $(this).text().trim()
+    // recreate span and insert in place of input element
+    var taskSpan = $('<span>')
+      .addClass('badge badge-primary badge-pill')
+      .text(date)
+    $(this).replaceWith(taskSpan)
+  })
 
-  // create new input element
-  var dateInput = $('<input>')
-    .attr('type', 'text')
-    .addClass('form-control')
-    .val(date)
-  $(this).replaceWith(dateInput)
+  // remove all tasks
+  $('#remove-tasks').on('click', function () {
+    for (var key in tasks) {
+      tasks[key].length = 0
+      $('#list-' + key).empty()
+    }
+    saveTasks()
+  })
 
-  // automatically bring up the calendar
-  dateInput.trigger('focus')
-})
+  // load tasks for the first time
+  loadTasks()
 
-// value of due date was changed
-$('.list-group').on('blur', "input[type='text']", function () {
-  var date = $(this).val()
-
-  // get status type and position in the list
-  var status = $(this).closest('.list-group').attr('id').replace('list-', '')
-  var index = $(this).closest('.list-group-item').index()
-
-  // update task in array and re-save to localstorage
-  tasks[status][index].date = date
-  saveTasks()
-
-  // recreate span and insert in place of input element
-  var taskSpan = $('<span>')
-    .addClass('badge badge-primary badge-pill')
-    .text(date)
-  $(this).replaceWith(taskSpan)
-})
-
-// remove all tasks
-$('#remove-tasks').on('click', function () {
-  for (var key in tasks) {
-    tasks[key].length = 0
-    $('#list-' + key).empty()
-  }
-  saveTasks()
-})
-
-// load tasks for the first time
-loadTasks()
 $('.card .list-group').sortable({
   connectWith: $('.card .list-group'),
   scroll: false,
@@ -168,6 +179,10 @@ $('.card .list-group').sortable({
   },
   update: function (event) {
     var tempArr = [];
+
+
+
+
     $(this).children().each(function () {
       var text = $(this)
         .find("p")
@@ -177,11 +192,36 @@ $('.card .list-group').sortable({
         .find("span")
         .text()
         .trim();
-    },
+    console.log (text, date)
       tempArr.push({
-        test: text,
+        text: text,
         date: date
-      }),
-    );
+      });
+
+    });
+          // trim down list's ID to match object property
+var arrName = $(this)
+.attr("id")
+.replace("list-", "");
+
+// update array on tasks object and save
+tasks[arrName] = tempArr;
+saveTasks();  
+  }
+
+  
+});
+$("#trash").droppable({
+  accept: ".card .list-group-item",
+  tolerance: "touch",
+  drop: function (event, ui) {
+    ui.draggable.remove();
+    console.log("drop");
+  },
+  over: function(event, ui) {
+    console.log("over");
+  },
+  out: function(event, ui) {
+    console.log("out");
   }
 });
