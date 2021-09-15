@@ -67,6 +67,9 @@ $('#task-form-modal .btn-primary').click(function () {
 
     // close modal
     $('#task-form-modal').modal('hide')
+    $('#modalDueDate').datepicker({
+      minDate: 1,
+    })
 
     // save in tasks array
     tasks.toDo.push({
@@ -210,9 +213,7 @@ $('.card .list-group').sortable({
 
     // update array on tasks object and save
     tasks[arrName] = tempArr
-    $('#modalDueDate').datepicker({
-      minDate: 1,
-    })
+  
     saveTasks()
   },
 })
